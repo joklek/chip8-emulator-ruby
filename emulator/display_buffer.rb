@@ -7,6 +7,7 @@ module Emulator
 
     def initialize
       @buffer = Array.new(64 * 32, 0)
+      @is_dirty = false
     end
 
     def reset
