@@ -132,7 +132,7 @@ RSpec.describe Emulator::Emulator do
       end
 
       GENERAL_REGISTER_INDEX.each do |address|
-        it_behaves_like 'sets general register', address
+        it_behaves_like 'adds to the general register', address
       end
     end
 
