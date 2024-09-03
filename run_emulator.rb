@@ -9,7 +9,7 @@ class RunEmulator
   def self.run
     puts 'Welcome to the Emulator'
     puts 'Please enter the name of the file you would like to emulate'
-    file_name = "IBM Logo.ch8"
+    file_name = ARGV[0].to_s
     file = File.open(file_name)
     file_data = file.read.bytes
     file.close
