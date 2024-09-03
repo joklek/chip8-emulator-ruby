@@ -119,12 +119,12 @@ RSpec.describe Emulator::Emulator do
     end
 
     describe '0x7XNN' do
-      shared_examples 'sets general register' do |address|
+      shared_examples 'adds to the general register' do |address|
         let(:opcode) { 0x7012 | address << 8 }
 
         before { emulator.general_registers[address] = 0x0023 }
 
-        it "sets #{address}nth general register" do
+        it "adds to the #{address}nth general register" do
           subject
 
           expect(emulator.general_registers[address]).to eq(0x0035)
