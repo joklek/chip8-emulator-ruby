@@ -145,5 +145,41 @@ RSpec.describe Emulator::Emulator do
         expect(emulator.index_register).to eq(0x0678)
       end
     end
+
+    describe '0xDXYN' do
+      let(:opcode) { 0xD000 | x_register << 8 | y_register << 4 | height }
+
+      let(:x_register) { 0x4 }
+      let(:y_register) { 0x3 }
+      let(:height) { 0x1 }
+
+      let(:x_value) { 0x0A }
+      let(:y_value) { 0x0B }
+
+      before do
+        emulator.general_registers[x_register] = x_value
+        emulator.general_registers[y_register] = y_value
+
+        emulator.memory[0x0] = 0b11111111
+        emulator.memory[0x1] = 0b11111111
+
+        emulator.general_registers[0xF] = 1
+      end
+
+      it "sets display buffer" do
+        subject
+
+        buffer = emulator.display_buffer.buffer
+        last_index = buffer.size - 1
+        start_index = x_value + y_value * 64
+        expect(buffer[(start_index - 1)..last_index]).to start_with([0, 1, 1, 1, 1, 1, 1, 1, 1, 0])
+        expect(buffer[0..(start_index - 1)]).to all(be_zero)
+        expect(buffer[start_index + 8..last_index]).to all(be_zero)
+      end
+
+      it 'sets VF to 0' do
+        expect{ subject }.to change{ emulator.general_registers[0xF] }.from(1).to(0)
+      end
+    end
   end
 end
