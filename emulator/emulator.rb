@@ -7,7 +7,7 @@ module Emulator
     MEMORY_SIZE = 4 * 1024
     PC_START = 0x200
 
-    attr_reader :memory, :display_buffer
+    attr_reader :memory, :display_buffer, :program_counter, :general_registers, :index_register
 
     def initialize
       @program_counter = PC_START

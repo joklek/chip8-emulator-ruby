@@ -27,7 +27,7 @@ RSpec.describe Emulator::DisplayBuffer do
 
       subject
 
-      expect(display_buffer.buffer).to all(eq(0))
+      expect(display_buffer.buffer).to all(be_zero)
     end
 
     it 'marks the buffer as dirty' do
