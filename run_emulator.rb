@@ -2,6 +2,7 @@
 
 require_relative 'emulator/emulator'
 require_relative 'emulator/display_ruby2d'
+require_relative 'emulator/sound_ruby2d'
 
 class RunEmulator
   TICK_PER_SECOND = 700
@@ -24,6 +25,7 @@ class RunEmulator
     emulator.load_data(file_data)
 
     display = Emulator::DisplayRuby2d.new(file_name)
+    sound = Emulator::SoundRuby2d.new
 
     display.draw do
       start_time = Time.now
@@ -37,6 +39,8 @@ class RunEmulator
       emulator.decrement_delay_timer
       emulator.decrement_sound_timer
 
+      sound.stop if emulator.sound_timer == 0
+      sound.play if emulator.sound_timer != 0
       display.draw_buffer(emulator.display_buffer) if emulator.display_buffer.dirty?
     end
 
