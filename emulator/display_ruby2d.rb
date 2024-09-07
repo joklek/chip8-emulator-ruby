@@ -42,5 +42,9 @@ module Emulator
     def show_display
       Window.show
     end
+
+    def fps
+      Window.fps
+    end
   end
 end

@@ -34,12 +34,15 @@ class RunEmulator
     display.draw do
       start_time = Time.now
       time_spent = 0.0
-      until time_spent > (1.0 / 60)
+      instructions_per_cycle = 0
+      until time_spent > (1.0 / display.fps) || instructions_per_cycle > TICK_PER_SECOND / display.fps
         emulator.cycle
+
         time_spent = Time.now - start_time
-        # sleep 1.0 / TICK_PER_SECOND
+        instructions_per_cycle += 1
       end
 
+      puts "#{instructions_per_cycle} instructions per #{time_spent*1000}ms"
       emulator.decrement_delay_timer
       emulator.decrement_sound_timer
 
