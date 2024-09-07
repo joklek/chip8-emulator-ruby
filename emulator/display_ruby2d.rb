@@ -6,8 +6,15 @@ module Emulator
   class DisplayRuby2d
 
     def initialize(title)
-      Window.new
       Window.set title: title, resizable: true
+
+      @pixels = {}
+      (0..63).each do |x|
+        @pixels[x] = {}
+        (0..31).each do |y|
+          @pixels[x][y] = Square.new(x: x * 10, y: y * 10, size: 8, color: 'black')
+        end
+      end
     end
 
     def draw
@@ -17,18 +24,18 @@ module Emulator
     end
 
     def draw_buffer(display_buffer)
-      Window.clear
       display_buffer.buffer.each.with_index do |pixel, index|
         x = index % 64
         y = index / 64
         if pixel == 0
-          Square.new(x: x * 10, y: y * 10, size: 8, color: 'black')
+          @pixels[x][y].color = 'black'
         elsif pixel == 1
-          Square.new(x: x * 10, y: y * 10, size: 8, color: 'white')
+          @pixels[x][y].color = 'white'
         else
           raise "Invalid pixel value #{pixel}"
         end
       end
+      puts "fps #{Window.fps} and fps cap #{Window.fps_cap}"
       display_buffer.clear_dirty!
     end
 
