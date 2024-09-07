@@ -23,6 +23,18 @@ module Emulator
       end
     end
 
+    def on_key_press
+      Window.on :key_down do |event|
+        yield(event.key)
+      end
+    end
+
+    def on_key_release
+      Window.on :key_up do |event|
+        yield(event.key)
+      end
+    end
+
     def draw_buffer(display_buffer)
       display_buffer.buffer.each.with_index do |pixel, index|
         x = index % 64
