@@ -24,7 +24,7 @@ module Emulator
       old_value = @buffer[y * 64 + x]
       return false if old_value == value
 
-      @buffer[y * 64 + x] = old_value ^ value
+      @buffer[y * 64 + x] = value # TODO: Figure out what's the correct behavior here
 
       @is_dirty = true
     end

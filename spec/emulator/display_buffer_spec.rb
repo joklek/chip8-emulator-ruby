@@ -55,6 +55,23 @@ RSpec.describe Emulator::DisplayBuffer do
       expect { subject }.to change { display_buffer.dirty? }.from(false).to(true)
     end
 
+    context 'when set pixel as 0 when it is 1' do
+      let(:value) { 0 }
+
+      before do
+        display_buffer.buffer[y * 64 + x] = 1
+      end
+
+      it 'sets a pixel' do
+        expect(subject).to be(true)
+        expect(display_buffer.buffer[y * 64 + x]).to eq(0)
+      end
+
+      it 'marks the buffer as dirty' do
+        expect { subject }.to change { display_buffer.dirty? }.from(false).to(true)
+      end
+    end
+
     context 'when the pixel is already set' do
       before do
         display_buffer.buffer[y * 64 + x] = 1
