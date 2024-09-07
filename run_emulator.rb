@@ -69,7 +69,7 @@ class RunEmulator
         emulator.pressed_key = nil
       end
 
-      # puts "#{instructions_per_cycle} instructions per #{time_spent*1000}ms"
+      puts "#{instructions_per_cycle} instructions per #{time_spent*1000}ms"
       emulator.decrement_delay_timer
       emulator.decrement_sound_timer
 
