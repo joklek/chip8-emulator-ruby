@@ -9,8 +9,12 @@ class RunEmulator
 
   def self.run
     puts 'Welcome to the Emulator'
-    puts 'Please enter the name of the file you would like to emulate'
     file_name = ARGV[0].to_s
+    unless file_name
+      puts 'Please enter the name of the file you would like to emulate'
+      return
+    end
+
     file = File.open(file_name)
     file_data = file.read.bytes
     file.close
