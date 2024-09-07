@@ -74,7 +74,8 @@ module Emulator
       elsif first_nibble == 6
         @general_registers[second_nibble] = opcode & 0x00FF
       elsif first_nibble == 7
-        @general_registers[second_nibble] += opcode & 0x00FF
+        value = @general_registers[second_nibble] + opcode & 0x00FF
+        @general_registers[second_nibble] = value & 0xFF
       elsif first_nibble == 8 && fourth_nibble == 0
         @general_registers[second_nibble] = @general_registers[third_nibble]
       elsif first_nibble == 8 && fourth_nibble == 1

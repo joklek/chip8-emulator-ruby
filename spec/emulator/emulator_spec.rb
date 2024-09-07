@@ -251,6 +251,16 @@ RSpec.describe Emulator::Emulator do
       GENERAL_REGISTER_INDEX.each do |address|
         it_behaves_like 'adds to the general register', address
       end
+
+      context 'when sum is greater than 255' do
+        let(:opcode) { 0x7112 }
+
+        before { emulator.general_registers[1] = 0xFF }
+
+        it "sets VX result is overflown result" do
+          expect { subject }.to change { emulator.general_registers[1] }.to(0x11)
+        end
+      end
     end
 
     describe '0x8XY0' do
