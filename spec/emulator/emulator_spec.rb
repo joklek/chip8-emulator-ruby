@@ -374,6 +374,22 @@ RSpec.describe Emulator::Emulator do
           expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
         end
       end
+
+      context 'when both subtraction sides equal' do
+        before do
+          emulator.general_registers[1] = 0x00AB
+          emulator.general_registers[2] = 0x00AB
+          emulator.general_registers[0xF] = 0
+        end
+
+        it "sets VX to 0" do
+          expect { subject }.to change { emulator.general_registers[1] }.to(0)
+        end
+
+        it 'sets VF to 1' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(0).to(1)
+        end
+      end
     end
 
     describe '0x8XY7' do
@@ -405,6 +421,22 @@ RSpec.describe Emulator::Emulator do
 
         it 'sets VF to 0' do
           expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
+      end
+
+      context 'when both subtraction sides equal' do
+        before do
+          emulator.general_registers[1] = 0x00AB
+          emulator.general_registers[2] = 0x00AB
+          emulator.general_registers[0xF] = 0
+        end
+
+        it "sets VX to 0" do
+          expect { subject }.to change { emulator.general_registers[1] }.to(0)
+        end
+
+        it 'sets VF to 1' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(0).to(1)
         end
       end
     end

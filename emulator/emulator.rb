@@ -93,7 +93,7 @@ module Emulator
         subtrahend = fourth_nibble == 5 ? @general_registers[third_nibble] : @general_registers[second_nibble]
 
         @general_registers[second_nibble] = (minuend - subtrahend) & 0xFF
-        @general_registers[0xF] = minuend > subtrahend ? 1 : 0
+        @general_registers[0xF] = minuend >= subtrahend ? 1 : 0
       elsif first_nibble == 8 && [6, 0xE].include?(fourth_nibble)
         # @general_registers[second_nibble] = @general_registers[third_nibble]
         value = @general_registers[second_nibble]
