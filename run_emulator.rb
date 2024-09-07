@@ -34,6 +34,9 @@ class RunEmulator
         # sleep 1.0 / TICK_PER_SECOND
       end
 
+      emulator.decrement_delay_timer
+      emulator.decrement_sound_timer
+
       display.draw_buffer(emulator.display_buffer) if emulator.display_buffer.dirty?
     end
 
