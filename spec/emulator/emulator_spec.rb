@@ -3,7 +3,8 @@
 require 'emulator'
 
 RSpec.describe Emulator::Emulator do
-  let(:emulator) { described_class.new }
+  let(:emulator) { described_class.new(quirks) }
+  let(:quirks) { {} }
 
   GENERAL_REGISTER_INDEX = (0..0x00F)
 
@@ -285,6 +286,16 @@ RSpec.describe Emulator::Emulator do
         expect(0x0011 | 0x00AB).not_to eq(0)
         expect { subject }.to change { emulator.general_registers[1] }.to(0x0011 | 0x00AB)
       end
+
+      context 'when vf_reset quirk is on' do
+        let(:quirks) { { vf_reset: true } }
+
+        before { emulator.general_registers[0xF] = 1 }
+
+        it 'resets VF' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
+      end
     end
 
     describe '0x8XY2' do
@@ -299,6 +310,16 @@ RSpec.describe Emulator::Emulator do
         expect(0x0011 & 0x00AB).not_to eq(0)
         expect { subject }.to change { emulator.general_registers[1] }.to(0x0011 & 0x00AB)
       end
+
+      context 'when vf_reset quirk is on' do
+        let(:quirks) { { vf_reset: true } }
+
+        before { emulator.general_registers[0xF] = 1 }
+
+        it 'resets VF' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
+      end
     end
 
     describe '0x8XY3' do
@@ -312,6 +333,16 @@ RSpec.describe Emulator::Emulator do
       it "sets VX ^= VY" do
         expect(0x0011 ^ 0x00AB).not_to eq(0)
         expect { subject }.to change { emulator.general_registers[1] }.to(0x0011 ^ 0x00AB)
+      end
+
+      context 'when vf_reset quirk is on' do
+        let(:quirks) { { vf_reset: true } }
+
+        before { emulator.general_registers[0xF] = 1 }
+
+        it 'resets VF' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
       end
     end
 
@@ -444,10 +475,13 @@ RSpec.describe Emulator::Emulator do
     describe '0x8XY6' do
       let(:opcode) { 0x8126 }
 
-      before { emulator.general_registers[1] = 0x0011 }
+      before do
+        emulator.general_registers[1] = 0x0011
+        emulator.general_registers[2] = 0x0045
+      end
 
-      it "shifts VX to the right" do
-        expect { subject }.to change { emulator.general_registers[1] }.from(0x0011).to(0x0008)
+      it "copies VY to VX and shifts to the right" do
+        expect { subject }.to change { emulator.general_registers[1] }.from(0x0011).to(0x0022)
       end
 
       it 'sets VF to 1' do
@@ -456,16 +490,43 @@ RSpec.describe Emulator::Emulator do
 
       context 'when shifted out bit is 0' do
         before do
-          emulator.general_registers[1] = 0x0010
+          emulator.general_registers[2] = 0x0044
           emulator.general_registers[0xF] = 1
         end
 
-        it "shifts VX to the right" do
-          expect { subject }.to change { emulator.general_registers[1] }.from(0x0010).to(0x0008)
+        it "copies VY to VX and shifts to the right" do
+          expect { subject }.to change { emulator.general_registers[1] }.from(0x0011).to(0x0022)
         end
 
         it 'sets VF to 0' do
           expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
+      end
+
+      context 'with shifting quirk' do
+        let(:quirks) { { shifting: true } }
+
+        it "shifts VX to the right" do
+          expect { subject }.to change { emulator.general_registers[1] }.from(0x0011).to(0x0008)
+        end
+
+        it 'sets VF to 1' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(0).to(1)
+        end
+
+        context 'when shifted out bit is 0' do
+          before do
+            emulator.general_registers[1] = 0x0010
+            emulator.general_registers[0xF] = 1
+          end
+
+          it "shifts VX to the right" do
+            expect { subject }.to change { emulator.general_registers[1] }.from(0x0010).to(0x0008)
+          end
+
+          it 'sets VF to 0' do
+            expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+          end
         end
       end
     end
@@ -473,10 +534,13 @@ RSpec.describe Emulator::Emulator do
     describe '0x8XYE' do
       let(:opcode) { 0x812E }
 
-      before { emulator.general_registers[1] = 0x00FF }
+      before do
+        emulator.general_registers[1] = 0x00EE
+        emulator.general_registers[2] = 0x00FF
+      end
 
-      it "shifts VX to the left" do
-        expect { subject }.to change { emulator.general_registers[1] }.from(0x00FF).to(0x00FE)
+      it "copies VY to VX and shifts to the left" do
+        expect { subject }.to change { emulator.general_registers[1] }.from(0x00EE).to(0x00FE)
       end
 
       it 'sets VF to 1' do
@@ -485,16 +549,44 @@ RSpec.describe Emulator::Emulator do
 
       context 'when shifted out bit is 0' do
         before do
-          emulator.general_registers[1] = 0x0010
+          emulator.general_registers[1] = 0x00AA
+          emulator.general_registers[2] = 0x0010
           emulator.general_registers[0xF] = 1
         end
 
-        it "shifts VX to the left" do
-          expect { subject }.to change { emulator.general_registers[1] }.from(0x0010).to(0x0020)
+        it "copies VY to VX and shifts to the left" do
+          expect { subject }.to change { emulator.general_registers[1] }.from(0x00AA).to(0x0020)
         end
 
         it 'sets VF to 0' do
           expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+        end
+      end
+
+      context 'with shifting quirk' do
+        let(:quirks) { { shifting: true } }
+
+        it "shifts VX to the left" do
+          expect { subject }.to change { emulator.general_registers[1] }.from(0x00EE).to(0x00DC)
+        end
+
+        it 'sets VF to 1' do
+          expect { subject }.to change { emulator.general_registers[0xF] }.from(0).to(1)
+        end
+
+        context 'when shifted out bit is 0' do
+          before do
+            emulator.general_registers[1] = 0x0010
+            emulator.general_registers[0xF] = 1
+          end
+
+          it "shifts VX to the left" do
+            expect { subject }.to change { emulator.general_registers[1] }.from(0x0010).to(0x0020)
+          end
+
+          it 'sets VF to 0' do
+            expect { subject }.to change { emulator.general_registers[0xF] }.from(1).to(0)
+          end
         end
       end
     end
@@ -518,6 +610,18 @@ RSpec.describe Emulator::Emulator do
         subject
 
         expect(emulator.program_counter).to eq(0x0125)
+      end
+
+      context 'when jumping quirk is on' do
+        let(:quirks) { { jumping: true } }
+
+        before { emulator.general_registers[1] = 0x0003 }
+
+        it 'sets program counter to NNN + VX' do
+          subject
+
+          expect(emulator.program_counter).to eq(0x0126)
+        end
       end
     end
 
@@ -568,11 +672,12 @@ RSpec.describe Emulator::Emulator do
         expect{ subject }.to change{ emulator.general_registers[0xF] }.from(1).to(0)
       end
 
-      context 'when drawing out of bounds' do
-        let(:x_value) { 62 }
-        let(:y_value) { 31 }
+      context 'when turning off pixel' do
+        let(:x_value) { 30 }
+        let(:y_value) { 28 }
 
         before do
+          emulator.display_buffer.set_pixel(x_value, y_value, 1)
           emulator.general_registers[0xF] = 0
         end
 
@@ -725,10 +830,11 @@ RSpec.describe Emulator::Emulator do
 
     describe '0xFX55' do
       let(:opcode) { 0xFA55 }
+      let(:offset) { 0xA }
 
       before do
         emulator.index_register = 0x03
-        (0..0xA).each do |i|
+        (0..offset).each do |i|
           emulator.general_registers[i] = i
         end
       end
@@ -736,16 +842,27 @@ RSpec.describe Emulator::Emulator do
       it 'sets memory from index register to VX' do
         subject
 
-        expect(emulator.memory[0x03..0x0D]).to eq((0..0xA).to_a)
+        expect(emulator.memory[0x03..0x0D]).to eq((0..offset).to_a)
+      end
+
+      context 'when memory quirk is on' do
+        let(:quirks) { { memory: true } }
+
+        before { emulator.index_register = 0x02 }
+
+        it 'adds offset to index register' do
+          expect { subject }.to change { emulator.index_register }.to(0x02 + offset + 1)
+        end
       end
     end
 
     describe '0xFX65' do
       let(:opcode) { 0xFA65 }
+      let(:offset) { 0xA }
 
       before do
         emulator.index_register = 0x03
-        (0..0xA).each do |i|
+        (0..offset).each do |i|
           emulator.memory[0x03 + i] = i
         end
       end
@@ -753,7 +870,17 @@ RSpec.describe Emulator::Emulator do
       it 'sets VX to memory from index register' do
         subject
 
-        expect(emulator.general_registers[0..0xA]).to eq((0..0xA).to_a)
+        expect(emulator.general_registers[0..offset]).to eq((0..offset).to_a)
+      end
+
+      context 'when memory quirk is on' do
+        let(:quirks) { { memory: true } }
+
+        before { emulator.index_register = 0x02 }
+
+        it 'adds offset to index register' do
+          expect { subject }.to change { emulator.index_register }.to(0x02 + offset + 1)
+        end
       end
     end
   end

@@ -10,16 +10,17 @@ module Emulator
 
     attr_reader :memory, :display_buffer, :program_counter, :general_registers, :index_register, :stack, :sound_timer, :delay_timer, :pressed_key
 
-    def initialize
+    def initialize(quirks_config = {})
       @program_counter = PC_START
       @index_register = 0
       @stack = []
       @general_registers = Array.new(16, 0)
       @memory = initial_memory
-      @display_buffer = DisplayBuffer.new
+      @display_buffer = DisplayBuffer.new(quirks_config)
       @delay_timer = 0
       @sound_timer = 0
       @pressed_key = nil # this implementation assumes one keypress at a time
+      @quirks_config = quirks_config
     end
 
     def load_data(data)
@@ -79,10 +80,13 @@ module Emulator
       elsif first_nibble == 8 && fourth_nibble == 0
         @general_registers[second_nibble] = @general_registers[third_nibble]
       elsif first_nibble == 8 && fourth_nibble == 1
+        @general_registers[0xF] = 0 if @quirks_config[:vf_reset]
         @general_registers[second_nibble] |= @general_registers[third_nibble]
       elsif first_nibble == 8 && fourth_nibble == 2
+        @general_registers[0xF] = 0 if @quirks_config[:vf_reset]
         @general_registers[second_nibble] &= @general_registers[third_nibble]
       elsif first_nibble == 8 && fourth_nibble == 3
+        @general_registers[0xF] = 0 if @quirks_config[:vf_reset]
         @general_registers[second_nibble] ^= @general_registers[third_nibble]
       elsif first_nibble == 8 && fourth_nibble == 4
         @general_registers[second_nibble] += @general_registers[third_nibble]
@@ -95,7 +99,7 @@ module Emulator
         @general_registers[second_nibble] = (minuend - subtrahend) & 0xFF
         @general_registers[0xF] = minuend >= subtrahend ? 1 : 0
       elsif first_nibble == 8 && [6, 0xE].include?(fourth_nibble)
-        # @general_registers[second_nibble] = @general_registers[third_nibble]
+        @general_registers[second_nibble] = @general_registers[third_nibble] unless @quirks_config[:shifting]
         value = @general_registers[second_nibble]
 
         if fourth_nibble == 6
@@ -109,7 +113,7 @@ module Emulator
         @index_register = opcode & 0x0FFF
       elsif first_nibble == 0xB
         address = opcode & 0x0FFF
-        offset = @general_registers[0]
+        offset = @quirks_config[:jumping] ? @general_registers[second_nibble] : @general_registers[0]
         @program_counter = (address + offset) & 0xFFFF
       elsif first_nibble == 0xC
         @general_registers[second_nibble] = rand(0x00FF) & (opcode & 0x00FF)
@@ -125,7 +129,7 @@ module Emulator
           for x_coord in 0..7
             value = (byte_value >> (7 - x_coord)) & 0x1
 
-            unless @display_buffer.set_pixel(x + x_coord, y + y_coord, value)
+            if @display_buffer.set_pixel(x + x_coord, y + y_coord, value)
               @general_registers[0xF] = 1
             end
           end
@@ -163,10 +167,12 @@ module Emulator
         for i in 0..second_nibble
           @memory[@index_register + i] = @general_registers[i]
         end
+        @index_register = (@index_register + second_nibble + 1) & 0xFFFF if @quirks_config[:memory]
       elsif opcode & 0xF0FF == 0xF065
         for i in 0..second_nibble
           @general_registers[i] = @memory[@index_register + i]
         end
+        @index_register = (@index_register + second_nibble + 1) & 0xFFFF if @quirks_config[:memory]
       else
         puts "Unknown opcode: 0x#{opcode.to_s(16)}"
       end

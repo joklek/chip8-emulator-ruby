@@ -26,6 +26,14 @@ class RunEmulator
     'V' => 0xF,
   }.freeze
 
+  QUIRKS_CONFIG = {
+    vf_reset: false,
+    memory: true,
+    clipping: true,
+    shifting: false,
+    jumping: false,
+  }
+
   def self.run
     puts 'Welcome to the Emulator'
     file_name = ARGV[0].to_s
@@ -44,7 +52,7 @@ class RunEmulator
   end
 
   def self.run_file(file_data, file_name)
-    emulator = ::Emulator::Emulator.new
+    emulator = ::Emulator::Emulator.new(QUIRKS_CONFIG)
     emulator.load_data(file_data)
 
     display = Emulator::DisplayRuby2d.new(file_name)
