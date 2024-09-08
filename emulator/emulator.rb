@@ -19,7 +19,7 @@ module Emulator
       @display_buffer = DisplayBuffer.new
       @delay_timer = 0
       @sound_timer = 0
-      @pressed_key = nil # TODO implement. Also this implementation assumes one keypress at a time
+      @pressed_key = nil # this implementation assumes one keypress at a time
     end
 
     def load_data(data)
@@ -39,7 +39,7 @@ module Emulator
 
     def fetch_opcode
       opcode = @memory[@program_counter] << 8 | @memory[@program_counter + 1]
-      @program_counter += 2
+      @program_counter = (@program_counter + 2) & 0xFFFF
       opcode
     end
 
@@ -52,7 +52,7 @@ module Emulator
       if opcode == 0x00E0
         @display_buffer.reset
       elsif opcode == 0x00EE
-        @program_counter = @stack.pop
+        @program_counter = @stack.pop & 0xFFFF
       elsif first_nibble == 1
         @program_counter = opcode & 0x0FFF
       elsif first_nibble == 2
@@ -69,12 +69,12 @@ module Emulator
           (first_nibble == 4 && real_value != expected_value) ||
           (first_nibble == 5 && real_value == real_value_2) ||
           (first_nibble == 9 && real_value != real_value_2)
-          @program_counter += 2
+          @program_counter = (@program_counter + 2 ) & 0xFFFF
         end
       elsif first_nibble == 6
-        @general_registers[second_nibble] = opcode & 0x00FF
+        @general_registers[second_nibble] = opcode & 0xFF
       elsif first_nibble == 7
-        value = @general_registers[second_nibble] + opcode & 0x00FF
+        value = @general_registers[second_nibble] + (opcode & 0xFF)
         @general_registers[second_nibble] = value & 0xFF
       elsif first_nibble == 8 && fourth_nibble == 0
         @general_registers[second_nibble] = @general_registers[third_nibble]
@@ -110,7 +110,7 @@ module Emulator
       elsif first_nibble == 0xB
         address = opcode & 0x0FFF
         offset = @general_registers[0]
-        @program_counter = address + offset
+        @program_counter = (address + offset) & 0xFFFF
       elsif first_nibble == 0xC
         @general_registers[second_nibble] = rand(0x00FF) & (opcode & 0x00FF)
       elsif first_nibble == 0xD
@@ -134,17 +134,17 @@ module Emulator
         variant = opcode & 0x00FF
         key_from_register = @general_registers[second_nibble]
 
-        @program_counter += 2 if (variant == 0x9E && key_from_register == @pressed_key)
-        @program_counter += 2 if (variant == 0xA1 && key_from_register != @pressed_key)
+        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0x9E && key_from_register == @pressed_key)
+        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0xA1 && key_from_register != @pressed_key)
       elsif opcode & 0xF0FF == 0xF00A
         if @pressed_key
           @general_registers[second_nibble] = @pressed_key
         else
           puts "Waiting for keypress"
-          @program_counter -= 2
+          @program_counter = (@program_counter - 2) & 0xFFFF
         end
       elsif opcode & 0xF0FF == 0xF007
-        @general_registers[second_nibble] = @delay_timer
+        @general_registers[second_nibble] = @delay_timer & 0xFF
       elsif opcode & 0xF0FF == 0xF015
         @delay_timer = @general_registers[second_nibble]
       elsif opcode & 0xF0FF == 0xF018
@@ -152,7 +152,7 @@ module Emulator
       elsif opcode & 0xF0FF == 0xF01E
         @index_register = (@index_register + @general_registers[second_nibble]) & 0xFFFF
       elsif opcode & 0xF0FF == 0xF029
-        @index_register = FONT_OFFSET + (second_nibble & 0x000F) * 5
+        @index_register = (FONT_OFFSET + (second_nibble & 0x000F) * 5) & 0xFFFF
       elsif opcode & 0xF0FF == 0xF033
         value = @general_registers[second_nibble]
 
