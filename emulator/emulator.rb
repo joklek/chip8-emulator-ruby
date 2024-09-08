@@ -156,7 +156,7 @@ module Emulator
       elsif opcode & 0xF0FF == 0xF01E
         @index_register = (@index_register + @general_registers[second_nibble]) & 0xFFFF
       elsif opcode & 0xF0FF == 0xF029
-        @index_register = (FONT_OFFSET + (second_nibble & 0x000F) * 5) & 0xFFFF
+        @index_register = (FONT_OFFSET + (@general_registers[second_nibble] & 0x000F) * 5) & 0xFFFF
       elsif opcode & 0xF0FF == 0xF033
         value = @general_registers[second_nibble]
 

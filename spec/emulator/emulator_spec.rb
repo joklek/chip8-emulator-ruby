@@ -804,10 +804,12 @@ RSpec.describe Emulator::Emulator do
     describe '0xFX29' do
       let(:opcode) { 0xFA29 }
 
+      before { emulator.general_registers[0xA] = 0x0B }
+
       it 'sets index register to font address' do
         subject
 
-        expect(emulator.index_register).to eq(0x50 + 0x0A * 5)
+        expect(emulator.index_register).to eq(0x50 + 0x0B * 5)
       end
     end
 
