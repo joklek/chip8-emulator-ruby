@@ -5,9 +5,10 @@ module Emulator
 
     attr_reader :buffer
 
-    def initialize
+    def initialize(quirks_config = {})
       @buffer = Array.new(64 * 32, 0)
       @is_dirty = false
+      @quirks_config = quirks_config
     end
 
     def reset
@@ -19,14 +20,19 @@ module Emulator
     end
 
     def set_pixel(x, y, value)
-      return false if x > 63 || y > 31 || x < 0 || y < 0
+      return if x >= 64 && @quirks_config[:clipping]
+      return if y >= 32 && @quirks_config[:clipping]
+      x = x % 64
+      y = y % 32
 
       old_value = @buffer[y * 64 + x]
-      return false if old_value == value
+      new_value = old_value ^ value
+      return if old_value == new_value
 
-      @buffer[y * 64 + x] = value # TODO: Figure out what's the correct behavior here
-
+      @buffer[y * 64 + x] = new_value
       @is_dirty = true
+
+      new_value == 0 && old_value == 1
     end
 
     def dirty?
