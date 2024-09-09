@@ -692,7 +692,7 @@ RSpec.describe Emulator::Emulator do
 
       before do
         emulator.general_registers[1] = 0x0A
-        emulator.pressed_key = 0x0A
+        emulator.key_pressed!(0x0A)
       end
 
       it 'skips next instruction if key is pressed' do
@@ -700,7 +700,10 @@ RSpec.describe Emulator::Emulator do
       end
 
       context 'when key is not pressed' do
-        before { emulator.pressed_key = 0x0B }
+        before do
+          emulator.key_released!(0x0A)
+          emulator.key_pressed!(0x0B)
+        end
 
         it 'does not skip next instruction' do
           expect{ subject }.not_to change{ emulator.program_counter }
@@ -713,7 +716,7 @@ RSpec.describe Emulator::Emulator do
 
       before do
         emulator.general_registers[1] = 0x0A
-        emulator.pressed_key = 0x0B
+        emulator.key_pressed!(0x0B)
       end
 
       it 'skips next instruction if key is not pressed' do
@@ -721,7 +724,10 @@ RSpec.describe Emulator::Emulator do
       end
 
       context 'when key is pressed' do
-        before { emulator.pressed_key = 0x0A }
+        before do
+          emulator.key_released!(0x0B)
+          emulator.key_pressed!(0x0A)
+        end
 
         it 'does not skip next instruction' do
           expect{ subject }.not_to change{ emulator.program_counter }
@@ -749,7 +755,7 @@ RSpec.describe Emulator::Emulator do
       end
 
       context 'when key is pressed' do
-        before { emulator.pressed_key = 0x0A }
+        before { emulator.key_pressed!(0x0A) }
 
         it 'sets VX to pressed key' do
           expect{ subject }.to change{ emulator.general_registers[0x0E] }.to(0x0A)

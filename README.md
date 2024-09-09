@@ -24,6 +24,13 @@ ruby run_emulator.rb <path_to_rom>
   - [x] Chip-8 sound
   - [x] Chip-8 timers
   - [x] All Chip-8 opcodes implemented and working
+  - [x] Keypad working
+    - [x] Multiple keys pressed at the same time available
+    - Controlled with the following keys:
+      - `1 2 3 4`
+      - `Q W E R`
+      - `A S D F`
+      - `Z X C V`
   - [x] Configurable quirks
     - Only configurable in code for now
   - [ ] Chip-8 keypad input

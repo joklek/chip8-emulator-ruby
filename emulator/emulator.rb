@@ -19,7 +19,7 @@ module Emulator
       @display_buffer = DisplayBuffer.new(quirks_config)
       @delay_timer = 0
       @sound_timer = 0
-      @pressed_key = nil # this implementation assumes one keypress at a time
+      @pressed_keys = {}
       @quirks_config = quirks_config
     end
 
@@ -138,14 +138,14 @@ module Emulator
         variant = opcode & 0x00FF
         key_from_register = @general_registers[second_nibble]
 
-        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0x9E && key_from_register == @pressed_key)
-        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0xA1 && key_from_register != @pressed_key)
+        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0x9E && @pressed_keys[key_from_register])
+        @program_counter = (@program_counter + 2) & 0xFFFF if (variant == 0xA1 && !@pressed_keys[key_from_register])
       elsif opcode & 0xF0FF == 0xF00A
-        if @pressed_key
-          @general_registers[second_nibble] = @pressed_key
-        else
+        if @pressed_keys.empty?
           puts "Waiting for keypress"
           @program_counter = (@program_counter - 2) & 0xFFFF
+        else
+          @general_registers[second_nibble] = @pressed_keys.keys.last
         end
       elsif opcode & 0xF0FF == 0xF007
         @general_registers[second_nibble] = @delay_timer & 0xFF
@@ -190,8 +190,12 @@ module Emulator
       @sound_timer -= 1
     end
 
-    def pressed_key=(key)
-      @pressed_key = key
+    def key_pressed!(key)
+      @pressed_keys[key] = true
+    end
+
+    def key_released!(key)
+      @pressed_keys.delete(key)
     end
 
     def delay_timer=(key)

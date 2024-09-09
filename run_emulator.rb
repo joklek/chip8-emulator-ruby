@@ -71,10 +71,11 @@ class RunEmulator
 
       display.on_key_press do |key|
         mapped_key = KEY_MAP[key.upcase]
-        emulator.pressed_key = mapped_key
+        emulator.key_pressed!(mapped_key) if mapped_key
       end
-      display.on_key_release do |_|
-        emulator.pressed_key = nil
+      display.on_key_release do |key|
+        mapped_key = KEY_MAP[key.upcase]
+        emulator.key_released!(mapped_key) if mapped_key
       end
 
       # puts "#{instructions_per_cycle} instructions per #{time_spent*1000}ms"
