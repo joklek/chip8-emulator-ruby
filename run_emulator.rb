@@ -5,7 +5,7 @@ require_relative 'emulator/display_ruby2d'
 require_relative 'emulator/sound_ruby2d'
 
 class RunEmulator
-  TICK_PER_SECOND = 700
+  TICK_PER_SECOND = 500
 
   KEY_MAP = {
     '1' => 0x1,
@@ -62,7 +62,7 @@ class RunEmulator
       start_time = Time.now
       time_spent = 0.0
       instructions_per_cycle = 0
-      until time_spent > (1.0 / display.fps) || instructions_per_cycle > TICK_PER_SECOND / display.fps
+      until time_spent > (1.0 / display.fps) || instructions_per_cycle > TICK_PER_SECOND * (1.0 / display.fps)
         emulator.cycle
 
         time_spent = Time.now - start_time
