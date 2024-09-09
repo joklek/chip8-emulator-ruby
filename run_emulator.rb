@@ -5,7 +5,7 @@ require_relative 'emulator/display_ruby2d'
 require_relative 'emulator/sound_ruby2d'
 
 class RunEmulator
-  TICK_PER_SECOND = 500
+  TICK_PER_SECOND = 700
 
   KEY_MAP = {
     '1' => 0x1,
@@ -29,6 +29,7 @@ class RunEmulator
   QUIRKS_CONFIG = {
     vf_reset: false,
     memory: true,
+    display_wait: true,
     clipping: true,
     shifting: false,
     jumping: false,
@@ -52,7 +53,8 @@ class RunEmulator
   end
 
   def self.run_file(file_data, file_name)
-    emulator = ::Emulator::Emulator.new(QUIRKS_CONFIG)
+    quirks_config = QUIRKS_CONFIG
+    emulator = ::Emulator::Emulator.new(quirks_config)
     emulator.load_data(file_data)
 
     display = Emulator::DisplayRuby2d.new(file_name)
@@ -64,6 +66,8 @@ class RunEmulator
       instructions_per_cycle = 0
       until time_spent > (1.0 / display.fps) || instructions_per_cycle > TICK_PER_SECOND * (1.0 / display.fps)
         emulator.cycle
+
+        break if quirks_config[:display_wait] && emulator.display_buffer.dirty?
 
         time_spent = Time.now - start_time
         instructions_per_cycle += 1

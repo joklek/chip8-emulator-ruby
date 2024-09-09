@@ -38,7 +38,6 @@ ruby run_emulator.rb <path_to_rom>
     - [x] 2-ibm-logo.ch8
     - [x] 3-corax+.ch8
     - [x] 4-flags.ch8
-    - [ ] 5-quirks.ch8
-      - Fails `Display Wait` test
+    - [x] 5-quirks.ch8
       - Default config fails `vf_reset`, needs quirk `vf_reset: true` to pass
     - [x] 6-keypad.ch8
