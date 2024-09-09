@@ -757,6 +757,17 @@ RSpec.describe Emulator::Emulator do
       context 'when key is pressed' do
         before { emulator.key_pressed!(0x0A) }
 
+        it 'does not set VX' do
+          expect{ subject }.not_to change{ emulator.general_registers[0x0E] }
+        end
+      end
+
+      context 'when key is released' do
+        before do
+          emulator.pressed_keys_last = { 0x0A => true }
+          emulator.key_released!(0x0A)
+        end
+
         it 'sets VX to pressed key' do
           expect{ subject }.to change{ emulator.general_registers[0x0E] }.to(0x0A)
         end

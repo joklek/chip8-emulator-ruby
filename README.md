@@ -33,9 +33,6 @@ ruby run_emulator.rb <path_to_rom>
       - `Z X C V`
   - [x] Configurable quirks
     - Only configurable in code for now
-  - [ ] Chip-8 keypad input
-    - Something's not 100% correct with the key up/down handling
-    - Multiple keys pressed at the same time are not handled correctly
   - Passes [Timendus tests](https://github.com/Timendus/chip8-test-suite)
     - [x] 1-chip8-logo.ch8
     - [x] 2-ibm-logo.ch8
@@ -44,5 +41,4 @@ ruby run_emulator.rb <path_to_rom>
     - [ ] 5-quirks.ch8
       - Fails `Display Wait` test
       - Default config fails `vf_reset`, needs quirk `vf_reset: true` to pass
-    - [ ] 6-keypad.ch8
-      - Fails `Fx0A GETKEY` with 'Not Released' error
+    - [x] 6-keypad.ch8
